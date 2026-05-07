@@ -91,3 +91,37 @@ Block returned to free-list (heap memory stays in process until exit)
 ---
 
 _Written as a beginner's guide to heap management in C._
+
+## What happens to memory when I call my_malloc repeatedly?
+
+When you call this simple version of my_malloc repeatedly, the Program Break (the boundary of your heap) acts like a one-way conveyor belt.
+
+1.**Continuous Growth:** Every single call to my_malloc triggers a system call (sbrk) that pushes the "fence" further out into the system's RAM.
+
+2.**Sequential Addresses:** Because we are simply extending the end of the heap, the memory addresses returned will be perfectly sequential. If you request 100 bytes, the next address will be exactly 100 bytes higher than the last.
+
+3.**The "No-Return" Problem:** This primitive allocator has no free() logic. Even if you "finish" using a block, you cannot reclaim that space. The memory stays occupied until the entire program exits.
+
+4.**Inefficiency:** In a real "Station Yard" (like glibc), malloc would first check a "free-list" to see if any old spots are empty before moving the fence. Our current version is like a market that only builds new stalls and never lets a new trader use an old, abandoned one.
+
+---
+
+## Memory Fragmentation Insight
+
+This allocator avoids internal bookkeeping entirely, which makes it simple but dangerous.
+
+Because memory is never reclaimed:
+
+the heap grows indefinitely
+abandoned regions accumulate
+long-running programs would eventually exhaust available memory
+
+Real allocators solve this using:
+
+metadata headers
+free lists
+block splitting
+coalescing
+
+Without these mechanisms, dynamic memory allocation is not sustainable.
+
